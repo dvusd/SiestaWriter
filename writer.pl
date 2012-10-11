@@ -6,7 +6,7 @@ use strict;
 #use lib "./build/jsb";
 use Getopt::Long;       # command line arg helper
 # Getopt DOCS --  http://www.vromans.org/johan/articles/getopt.html
-use FindJs; # must copy trunk/shell/build/jsb/*.pm into one of these include paths `perl -e "print qq(@INC)"`
+#use FindJs; # must copy trunk/shell/build/jsb/*.pm into one of these include paths `perl -e "print qq(@INC)"`
 use File::Basename;
 use Digest::MD5;
 
@@ -20,6 +20,7 @@ my $recursive = 0;
 my $unknown = 0;
 my $mirror = 0;
 my $verbose = 0;
+my $debug = 0;
 my $in;
 my $out;
 my $tplType;
@@ -34,7 +35,8 @@ if ($#ARGV > 0){
        'u'     => \$unknown,
        'm'     => \$mirror,
        'v'     => \$verbose,
-       'h'     => \$help
+       'h'     => \$help,
+       'd'     => \$debug
     );
 }
 
@@ -103,35 +105,39 @@ sub main {
 		print "-" x 80; #repeat a character 
 		print "\nProcessing $input\n";
 	}
+	print "#main($input, $output)\n" if $debug;
 	
 	if(-f $input){
 	    parseFile($input,$output);
 	}elsif(-d $input){
-	    my $buildObj = new FindJs($input);
-	    my @jsFiles = $buildObj->getJsFiles();
-	    for my $jsFile (@jsFiles) {
-	    	($base, $dir, $ext) = fileparse("$input/$jsFile",'\..*');
-	    	$base = lc($base);
-	        parseFile("$input/$jsFile","$output/$base.t.js");
-	    }
-	    # check for sub-folders if we are supposed process everything
-	    if ($recursive){
-	    	opendir(DIR, $input);
-	    	my (@names) = readdir(DIR);
-	    	closedir(DIR);
-		    # Loop thru directory, handle files and directories   
-		    my $name;
-		    foreach $name (@names) {
-		        chomp($name);
-		        
-		        # Ignore ".", "..", and hidden files
-		        next if ($name =~ m/^\./);
-		        
+    	opendir(DIR, $input);
+    	my (@names) = readdir(DIR);
+    	closedir(DIR);
+	    # Loop thru directory, handle files and directories   
+	    my $name;
+	    foreach $name (@names) {
+	        chomp($name);
+	        
+	        # Ignore ".", "..", and hidden files
+	        next if ($name =~ m/^\./);
+	        
+	        if (-f "$input/$name"){
+            	if($name =~ /\.js$/) {  # only cache .js files for processing later
+                    print "#js: $name\n" if $debug;
+                    ($base, $dir, $ext) = fileparse("$input/$name",'\..*');
+                    print "#fileparse: $input/$name\n" if $debug;
+                    print "\tbase: $base\n\tdir: $dir\n\text: $ext\n" if $debug;
+                    $base = lc($base);
+                    parseFile("$input/$name","$output/$base.t.js");
+	        	}
+	        }
+	        # check for sub-folders if we are supposed process everything
+	        if ($recursive){		        
     			if (-d "$input/$name"){
     			    main("$input/$name","$output/$name");
     			}
-            }
-	    }
+	        }
+        }
 	}else{
 	    die("$input is not a file or directory\n");
 	}
@@ -153,6 +159,7 @@ sub parseFile {
     my $digest;
     
     print "\n" if $verbose;
+    print "#parseFile($input, $output)\n" if $debug;
     
     $ctx = Digest::MD5->new;
     
@@ -288,6 +295,7 @@ sub mirror {
     if(!-d "$input"){
         die "Invalid input folder for mirroring: '$input'";
     }
+    print "#mirror($input, $output)\n" if $debug;
     
     my $rsyncExcludes = "excludes";
     my $rsync = "rsync -zacO '$input/' '$output/' --exclude-from='$pwd/$rsyncExcludes'";
