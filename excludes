@@ -1,0 +1,13 @@
+.svn
+.cache
+.settings
+.buildpath
+.3rd party code
+.deprecated
+.opensource
+.work in progress
+.examples
+.sass-cache
+.project
+*.js
+*.swf
