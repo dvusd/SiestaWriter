@@ -21,8 +21,10 @@ The script also supports a command-line argument for statically declaring the ty
 Usage
 -----
 From the command line, run the following to see all options:
-    perl ./writer.pl
 
+```bash
+perl ./writer.pl
+```
 
 
 [Siesta]: http://www.bryntum.com/products/siesta/
