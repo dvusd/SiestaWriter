@@ -27,7 +27,7 @@ my $tplType;
 my $warnings = "";
 
 if ($#ARGV > 0){
-	GetOptions(
+    GetOptions(
        'i=s'   => \$in,     # read -i option as string into $file
        'o=s'   => \$out,    # read -o option as string into $file
        't=s'   => \$tplType,
@@ -69,78 +69,78 @@ USAGE: $0 [iortumvh]
         The input location must be a folder. 
     -v  Verbose output.  Warnings will always be printed.
     -h  This help message.
-~;	
-	print "$data";
-	exit(0);
+~;    
+    print "$data";
+    exit(0);
 }
 
 print "Starting test generation:\n";
 if ($verbose){
-	print "* Input:\t$in\n";
-	print "* Output:\t$out\n";
-	if ($recursive){ print "* Recursive:\tYes\n"; }
-	if ($tplType){ print "* Template:\t$tplType\n"; }
-	if ($unknown){ print "* Unknown:\tYes\n"; }
-	if ($mirror){ print "* Mirroring:\tYes\n"; }
-	if ($verbose){ print "* Verbose:\tYes\n"; }
+    print "* Input:\t$in\n";
+    print "* Output:\t$out\n";
+    if ($recursive){ print "* Recursive:\tYes\n"; }
+    if ($tplType){ print "* Template:\t$tplType\n"; }
+    if ($unknown){ print "* Unknown:\tYes\n"; }
+    if ($mirror){ print "* Mirroring:\tYes\n"; }
+    if ($verbose){ print "* Verbose:\tYes\n"; }
 }
 
 if ($mirror){
-	mirror($in,$out);
+    mirror($in,$out);
 }
 main($in,$out);
 if ($warnings ne ""){
-	print "\nWARNINGS:\n$warnings\n";
+    print "\nWARNINGS:\n$warnings\n";
 }
 print "\nDone:\n";
 
 sub main {
     my $input = $_[0];
     my $output = $_[1];
-	my $base;
-	my $dir;
-	my $ext;    
-	
-	if ($verbose){
-		print "-" x 80; #repeat a character 
-		print "\nProcessing $input\n";
-	}
-	print "#main($input, $output)\n" if $debug;
-	
-	if(-f $input){
-	    parseFile($input,$output);
-	}elsif(-d $input){
-    	opendir(DIR, $input);
-    	my (@names) = readdir(DIR);
-    	closedir(DIR);
-	    # Loop thru directory, handle files and directories   
-	    my $name;
-	    foreach $name (@names) {
-	        chomp($name);
-	        
-	        # Ignore ".", "..", and hidden files
-	        next if ($name =~ m/^\./);
-	        
-	        if (-f "$input/$name"){
-            	if($name =~ /\.js$/) {  # only cache .js files for processing later
+    my $base;
+    my $dir;
+    my $ext;    
+    
+    if ($verbose){
+        print "-" x 80; #repeat a character 
+        print "\nProcessing $input\n";
+    }
+    print "#main($input, $output)\n" if $debug;
+    
+    if(-f $input){
+        parseFile($input,$output);
+    }elsif(-d $input){
+        opendir(DIR, $input);
+        my (@names) = readdir(DIR);
+        closedir(DIR);
+        # Loop thru directory, handle files and directories   
+        my $name;
+        foreach $name (@names) {
+            chomp($name);
+            
+            # Ignore ".", "..", and hidden files
+            next if ($name =~ m/^\./);
+            
+            if (-f "$input/$name"){
+                if($name =~ /\.js$/) {  # only cache .js files for processing later
                     print "#js: $name\n" if $debug;
                     ($base, $dir, $ext) = fileparse("$input/$name",'\..*');
                     print "#fileparse: $input/$name\n" if $debug;
                     print "\tbase: $base\n\tdir: $dir\n\text: $ext\n" if $debug;
                     $base = lc($base);
                     parseFile("$input/$name","$output/$base.t.js");
-	        	}
-	        }
-	        # check for sub-folders if we are supposed process everything
-	        if ($recursive){		        
-    			if (-d "$input/$name"){
-    			    main("$input/$name","$output/$name");
-    			}
-	        }
+                }
+            }
+            # check for sub-folders if we are supposed process everything
+            if ($recursive){                
+                if (-d "$input/$name"){
+                    main("$input/$name","$output/$name");
+                }
+            }
         }
-	}else{
-	    die("$input is not a file or directory\n");
-	}
+    }else{
+        die("$input is not a file or directory\n");
+    }
 }
 
 
@@ -165,32 +165,32 @@ sub parseFile {
     
     # if the file already exists, check if it has been modified 
     if (-e $output){
-	    open(FH, "<$output");
-	    $block = do { local $/; <FH> };
-	    close(FH);
-	    # read the original checksum
-	    $block =~ m/Checksum:\s(.*?)[\n]/;
-	    $digest = $1;
-	    if (($digest eq "") || ($digest eq undef)){
-	        logWarn("Skipped $input: checksum missing.\n");
-	        return;
-	    }
-	    print "Checksum from comment:\t$digest\n" if $verbose;	    
-	    # remove the multiline header comment before calculating the md5
-	    $block =~ s#^/\*.*?\*/\n##sg;
-#	    print "\nRemove comment:\n$block\n\n";
-	    $ctx->add($block);
-	    my $newDigest = $ctx->hexdigest;
-	    print "Checksum from code:\t$digest\n" if $verbose;
-	    if ($digest eq $newDigest){
-	    	print "\Values Match!\n" if $verbose;
-	    }
-	    # clear the data we loaded
-	    $ctx->reset;
-	    if ($digest ne $newDigest){
-	    	logWarn("Skipped $input: checksums do not match. File has been modified.\n");
-	    	return;
-	    }
+        open(FH, "<$output");
+        $block = do { local $/; <FH> };
+        close(FH);
+        # read the original checksum
+        $block =~ m/Checksum:\s(.*?)[\n]/;
+        $digest = $1;
+        if (($digest eq "") || ($digest eq undef)){
+            logWarn("Skipped $input: checksum missing.\n");
+            return;
+        }
+        print "Checksum from comment:\t$digest\n" if $verbose;        
+        # remove the multiline header comment before calculating the md5
+        $block =~ s#^/\*.*?\*/\n##sg;
+#        print "\nRemove comment:\n$block\n\n";
+        $ctx->add($block);
+        my $newDigest = $ctx->hexdigest;
+        print "Checksum from code:\t$digest\n" if $verbose;
+        if ($digest eq $newDigest){
+            print "\Values Match!\n" if $verbose;
+        }
+        # clear the data we loaded
+        $ctx->reset;
+        if ($digest ne $newDigest){
+            logWarn("Skipped $input: checksums do not match. File has been modified.\n");
+            return;
+        }
     }
     
     print "Read: $input\n" if $verbose;
@@ -218,13 +218,13 @@ sub parseFile {
     
     # check if the user specified a type to use
     if ($tplType){
-    	$type = $tplType;
+        $type = $tplType;
     } else {
-	    # attempt to auto-detect the type of test template to use
-	    if ($extend =~ m/Ext\.data\.Model/){
-	    	$type = 'model';
-	    } elsif (($extend =~ m/grid\.Panel/) || ($extend =~ m/Grid$/) || ($alias =~ m/grid$/)){
-	    	$type = 'grid';
+        # attempt to auto-detect the type of test template to use
+        if ($extend =~ m/Ext\.data\.Model/){
+            $type = 'model';
+        } elsif (($extend =~ m/grid\.Panel/) || ($extend =~ m/Grid$/) || ($alias =~ m/grid$/)){
+            $type = 'grid';
         } elsif (($extend =~ m/tree\.Panel/) || ($extend =~ m/Tree$/) || ($alias =~ m/tree$/)){
             $type = 'tree';
         } elsif (($extend =~ m/form\.Panel/) || ($extend =~ m/Form$/) || ($alias =~ m/form$/)){
@@ -233,8 +233,8 @@ sub parseFile {
             $type = 'tab';
         } elsif (($extend =~ m/Toolbar$/) || ($alias =~ m/toolbar$/)){
             $type = 'toolbar';
-	    } elsif (($extend =~ m/Window$/) || ($alias =~ m/window$/)){
-	    	$type = 'window';
+        } elsif (($extend =~ m/Window$/) || ($alias =~ m/window$/)){
+            $type = 'window';
         } elsif (($extend =~ m/Panel$/) || ($alias =~ m/panel$/)){
             $type = 'panel';
         } elsif (($extend =~ m/Button/) || ($alias =~ m/button$/)){
@@ -243,14 +243,14 @@ sub parseFile {
             $type = 'store';
         } elsif ($extend =~ m/app\.Controller/){
             $type = 'controller';
-	    } else {
-	    	if ($unknown){
+        } else {
+            if ($unknown){
                 $type = 'generic';
-	    	} else {
-	    		logWarn("Skipped $class: unknown type.\n");
-	    		return;
-	    	}
-	    }
+            } else {
+                logWarn("Skipped $class: unknown type.\n");
+                return;
+            }
+        }
     }
     print "\t* type: $type\n" if $verbose;
     
@@ -283,7 +283,7 @@ sub parseFile {
 }
 
 sub logWarn {
-	my $msg = $_[0];
+    my $msg = $_[0];
     print $msg if $verbose;
     $warnings .= $msg;
 }
