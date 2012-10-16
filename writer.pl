@@ -61,7 +61,7 @@ USAGE: $0 [iortumvh]
     -r  Recursively process all subfolders if the input is a folder.  Default is false. 
     -t  Template type to use instead of auto-detection. 
         The following values are supported: 
-            'button', 'form', 'grid', 'model', 'panel', 'tab', 'toolbar', 'tree', 'window', 'generic'
+            'button', 'controller', 'form', 'generic', 'grid', 'model', 'panel', 'store', 'tab', 'toolbar', 'tree', 'window'
     -u  Write tests for types of classes that are not natively supported.  Default is false.
         If set to true, the default template type will be 'generic' unless otherwise specified 
         with the -t option.
