@@ -59,6 +59,7 @@ USAGE: $0 [iortumvh]
         the corresponds with the existing code.  If the checksum is missing or does not match, 
         then the file will not be modified.
     -r  Recursively process all subfolders if the input is a folder.  Default is false. 
+        Automatically implies that the directory structure will be mirrored.
     -t  Template type to use instead of auto-detection. 
         The following values are supported: 
             'button', 'controller', 'form', 'generic', 'grid', 'model', 'panel', 'store', 'tab', 'toolbar', 'tree', 'window'
@@ -74,10 +75,13 @@ USAGE: $0 [iortumvh]
     exit(0);
 }
 
+# processing recursively implies we need to mirror/create any missing sub-folders
+if ($recursive){ $mirror = 1; }
+
 print "Starting test generation:\n";
+print "* Input:\t$in\n";
+print "* Output:\t$out\n";
 if ($verbose){
-    print "* Input:\t$in\n";
-    print "* Output:\t$out\n";
     if ($recursive){ print "* Recursive:\tYes\n"; }
     if ($tplType){ print "* Template:\t$tplType\n"; }
     if ($unknown){ print "* Unknown:\tYes\n"; }
