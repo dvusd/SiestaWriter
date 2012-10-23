@@ -4,7 +4,7 @@ StartTest(function(t) {
         xtype = '${alias}';
     
     t.chainDone(
-        { action:'run', fn:'render', args:[cls, {height:null, width:null}] },
-        { action:'run', fn:'destroyCQ', args:xtype }
+        'render("'+cls+'", {"height":null, "width":null})',
+        'destroyCQ("'+xtype+'")'
     );
 });
