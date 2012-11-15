@@ -23,7 +23,7 @@ perl ./writer.pl
 * Process a folder recursively with the "-r" option.  This will generate the files in a tree structure that mimics the input tree.  
 * A verbose mode is available with "-v".  
 * The script also supports a command-line argument for statically declaring the type of template to use when processing a file or folder containing JS class definitions.  For this, specify "-t" followed by one of these types:
-** 'button', 'controller', 'form', 'generic', 'grid', 'model', 'panel', 'store', 'tab', 'toolbar', 'tree', 'window'
+** 'button', 'controller', 'form', 'generic', 'grid', 'menu', 'model', 'panel', 'store', 'tab', 'toolbar', 'tree', 'window'
 
 Templates
 ---------

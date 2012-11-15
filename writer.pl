@@ -25,6 +25,7 @@ my $in;
 my $out;
 my $tplType;
 my $warnings = "";
+my $ttlChanged = 0;
 
 if ($#ARGV > 0){
     GetOptions(
@@ -62,7 +63,7 @@ USAGE: $0 [iortumvh]
         Automatically implies that the directory structure will be mirrored.
     -t  Template type to use instead of auto-detection. 
         The following values are supported: 
-            'button', 'controller', 'form', 'generic', 'grid', 'model', 'panel', 'store', 'tab', 'toolbar', 'tree', 'window'
+            'button', 'controller', 'form', 'generic', 'grid', 'menu', 'model', 'panel', 'store', 'tab', 'toolbar', 'tree', 'window'
     -u  Write tests for types of classes that are not natively supported.  Default is false.
         If set to true, the default template type will be 'generic' unless otherwise specified 
         with the -t option.
@@ -96,6 +97,7 @@ main($in,$out);
 if ($warnings ne ""){
     print "\nWARNINGS:\n$warnings\n";
 }
+print "\nTotal Files Modified: $ttlChanged\n";
 print "\nDone:\n";
 
 sub main {
@@ -235,6 +237,8 @@ sub parseFile {
             $type = 'form';
         } elsif (($extend =~ m/tab\.Panel/) || ($extend =~ m/Tab$/) || ($alias =~ m/tab$/)){
             $type = 'tab';
+        } elsif (($extend =~ m/menu\.Menu/) || ($extend =~ m/Menu$/) || ($alias =~ m/menu$/)){
+            $type = 'menu';
         } elsif (($extend =~ m/Toolbar$/) || ($alias =~ m/toolbar$/)){
             $type = 'toolbar';
         } elsif (($extend =~ m/Window$/) || ($alias =~ m/window$/)){
@@ -284,6 +288,7 @@ sub parseFile {
     open(FH,">$output");
     print FH "$header$str";
     close(FH);
+    $ttlChanged++;
 }
 
 sub logWarn {
