@@ -1,6 +1,5 @@
 StartTest(function(t){
-    var Ext = t.getExt(),
-        cls = '${class}';
+    var cls = '${class}';
 
     t.createStoresAndThen(cls,function(){
         var store = Ext.getStore(cls);

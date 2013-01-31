@@ -1,6 +1,5 @@
 StartTest(function(t) {
-    var Ext = t.getExt(),
-        cls = '${class}';
+    var cls = '${class}';
     
     t.chainDone(
         { action:'run', fn:'waitForAppLaunch', args:[{ controllers:[cls] }] },

@@ -1,6 +1,5 @@
 StartTest(function(t){
-    var Ext = t.getExt(),
-        cls = '${class}';
+    var cls = '${class}';
 
     t.createModelAndThen(cls,function(model){
         t.loadModelAndThen(model,function(model){
