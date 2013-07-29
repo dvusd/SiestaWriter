@@ -205,6 +205,9 @@ sub parseFile {
     $block = do { local $/; <FH> };
     close(FH);
     
+    # attempt to strip out any multi-line comments, which may include docs/examples that have some of the syntax we are trying to match
+    $block =~ s#/\*.*?\*/\n##sg;
+    
     if($block !~ m/Ext\.define/){ next; }
     
     $block =~ m/Ext\.define\(['"](.*?)['"],/;
