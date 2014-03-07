@@ -3,8 +3,8 @@ StartTest(function(t) {
         xtype = '${alias}';
     
     t.chainDone(
-        { action:'run', fn:'render', args:[cls, {autoShow:true,height:null,width:null}] },
-        { action:'waitFor', waitFor:'waitForCQVisible', args:xtype },
-        { action:'run', fn:'destroyCQ', args:xtype }
+        'render("'+cls+'", {"autoShow":true, "height":null, "width":null})',
+        'waitForCQVisible("'+xtype+'")',
+        'destroyCQ("'+xtype+'")'
     );
 });

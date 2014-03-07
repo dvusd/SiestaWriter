@@ -3,9 +3,9 @@ StartTest(function(t) {
         xtype = '${alias}';
     
     t.chainDone(
-        { action:'run', fn:'render', args:[cls, {}] },
-        { action:'run', fn:'clickCQ', args:['tab'] },
-        { action:'run', fn:'clickCQ', args:xtype+' tool[type="close"]' },
-        { action:'run', fn:'destroyCQ', args:xtype }
+        'render("'+cls+'", {})',
+        'clickCQ("tab")',
+        'clickCQ("'+xtype+' tool[type=close]")',
+        'destroyCQ("'+xtype+'")'
     );
 });

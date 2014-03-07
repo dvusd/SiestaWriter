@@ -3,7 +3,7 @@ StartTest(function(t) {
         xtype = '${alias}';
     
     t.chainDone(
-        { action:'run', fn:'render', args:[cls, {height:null}] },
-        { action:'run', fn:'destroyCQ', args:xtype }
+        'render("'+cls+'", {"height":null})',
+        'destroyCQ("'+xtype+'")'
     );
 });
