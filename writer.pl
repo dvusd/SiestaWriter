@@ -101,11 +101,8 @@ print "\nTotal Files Modified: $ttlChanged\n";
 print "\nDone:\n";
 
 sub main {
-    my $input = $_[0];
-    my $output = $_[1];
-    my $base;
-    my $dir;
-    my $ext;    
+    my ($input,$output) = @_;
+    my ($base, $dir, $ext);
     
     if ($verbose){
         print "-" x 80; #repeat a character 
@@ -151,18 +148,8 @@ sub main {
 
 
 sub parseFile {
-    my $input = $_[0];
-    my $output = $_[1];
-    my $block;
-    my $class;
-    my $alias;
-    my $extend;
-    my $tplFile;
-    my $type;
-    my $str;
-    my $header;
-    my $ctx;
-    my $digest;
+    my ($input, $output) = @_;
+    my ($block,$class,$alias,$extend,$tplFile,$type,$str,$header,$ctx,$digest);
     
     print "\n" if $verbose;
     print "#parseFile($input, $output)\n" if $debug;
@@ -295,14 +282,13 @@ sub parseFile {
 }
 
 sub logWarn {
-    my $msg = $_[0];
+    my ($msg) = @_;
     print $msg if $verbose;
     $warnings .= $msg;
 }
 
 sub mirror {
-    my $input = $_[0];
-    my $output = $_[1];
+    my ($input,$output) = @_;
     
     if(!-d "$input"){
         die "Invalid input folder for mirroring: '$input'";
