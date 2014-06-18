@@ -10,7 +10,10 @@ use Getopt::Long;       # command line arg helper
 use File::Basename;
 use Digest::MD5;
 
-$| = 1; # turn off output buffering
+# In Perl, you can't turn the buffering off, but you can get the same benefits by making the filehandle "hot".
+# Whenever you print to a hot filehandle (STDOUT in our case), Perl flushes the buffer immediately.
+# http://perl.plover.com/FAQs/Buffering.html
+$| = 1;
 
 # configure command line args parser
 Getopt::Long::Configure('bundling'); #adds support for -fRu vs -f -r -u
