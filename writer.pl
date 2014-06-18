@@ -179,7 +179,7 @@ sub parseFile {
         my $newDigest = $ctx->hexdigest;
         print "Checksum from code:\t$digest\n" if $verbose;
         if ($digest eq $newDigest){
-            print "\Values Match!\n" if $verbose;
+            print "Values Match!\n" if $verbose;
         }
         # clear the data we loaded
         $ctx->reset;
