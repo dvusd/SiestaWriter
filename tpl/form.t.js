@@ -4,7 +4,8 @@ StartTest(function(t) {
     
     t.chainDone(
         'render("'+cls+'", {})',
-        'clickCQ("'+xtype+' field[disabled=false]{isVisible(true)}")',
+        'clickCQ("'+xtype+' field:not(combo)[disabled=false]{isVisible(true)}")',
+        'clickCQ("'+xtype+' combo[disabled=false]{isVisible(true)}")',
         'clickCQ("'+xtype+' tool[type=close]")',
         'destroyCQ("'+xtype+'")'
     );
