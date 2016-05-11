@@ -220,7 +220,7 @@ sub parseFile {
         $type = $tplType;
     } else {
         # attempt to auto-detect the type of test template to use
-        if ($extend =~ m/Ext\.data\.Model/){
+        if (($extend =~ m/Ext\.data\.Model/) || ($extend =~ m/data\.Model$/)){
             $type = 'model';
         } elsif (($extend =~ m/grid\.Panel/) || ($extend =~ m/Grid$/) || ($alias =~ m/grid$/)){
             $type = 'grid';
