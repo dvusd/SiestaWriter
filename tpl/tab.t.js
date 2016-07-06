@@ -4,7 +4,7 @@ StartTest(function(t) {
     
     t.chainDone(
         'render("'+cls+'", {})',
-        'clickCQ("tab")',
+        'clickCQ("tab[disabled=false]")',
         'clickCQ("'+xtype+' tool[type=close]")',
         'destroyCQ("'+xtype+'")'
     );
