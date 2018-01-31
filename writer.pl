@@ -3,7 +3,7 @@
 # 1st arg is the root of the source folder to mimic, will parse recrusively all js file(s) and convert from leading to trailing comma convention
 # 2nd arg is the root of the destination folder that will
 use strict;
-use warnings FATAL => 'all';
+use warnings;
 #use lib "./build/jsb";
 use Getopt::Long;       # command line arg helper
 # Getopt DOCS --  http://www.vromans.org/johan/articles/getopt.html
@@ -167,12 +167,13 @@ sub parseFile {
         close(FH);
         # read the original checksum
         $block =~ m/Checksum:\s(.*?)[\n]/;
+        # capture group 1 value checksum
         $digest = $1;
-        if (($digest eq "") || ($digest eq undef)){
+        if ((!defined $digest) || ($digest eq "")){
             logWarn("Skipped $input: checksum missing.\n");
             return;
         }
-        print "Checksum from comment:\t$digest\n" if $verbose;        
+        print "Checksum from comment:\t$digest\n" if $verbose;
         # remove the multiline header comment before calculating the md5
         $block =~ s#^/\*.*?\*/\n##sg;
 #        print "\nRemove comment:\n$block\n\n";
@@ -202,6 +203,7 @@ sub parseFile {
     if($block !~ m/Ext\.define/){ next; }
     
     $block =~ m/Ext\.define\(['"](.*?)['"],/;
+    # capture group 1 value is the class
     $class = $1;
     $alias = "";
     print "\t* class: $class\n" if $verbose;
