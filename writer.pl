@@ -3,6 +3,7 @@
 # 1st arg is the root of the source folder to mimic, will parse recrusively all js file(s) and convert from leading to trailing comma convention
 # 2nd arg is the root of the destination folder that will
 use strict;
+use warnings FATAL => 'all';
 #use lib "./build/jsb";
 use Getopt::Long;       # command line arg helper
 # Getopt DOCS --  http://www.vromans.org/johan/articles/getopt.html
@@ -66,7 +67,7 @@ USAGE: $0 [iortumvh]
         Automatically implies that the directory structure will be mirrored.
     -t  Template type to use instead of auto-detection. 
         The following values are supported: 
-            'button', 'controller', 'form', 'generic', 'grid', 'menu', 'model', 'panel', 'store', 'tab', 'toolbar', 'tree', 'window'
+            'button', 'controller', 'form', 'generic', 'grid', 'menu', 'mixin', 'model', 'panel', 'store', 'tab', 'toolbar', 'tree', 'window'
     -u  Write tests for types of classes that are not natively supported.  Default is false.
         If set to true, the default template type will be 'generic' unless otherwise specified 
         with the -t option.
@@ -196,12 +197,13 @@ sub parseFile {
     close(FH);
     
     # attempt to strip out any multi-line comments, which may include docs/examples that have some of the syntax we are trying to match
-    $block =~ s#/\*.*?\*/\n##sg;
+    $block =~ s/\/\*(?:(?!\*\/).)*\*\/\n?//sg;
     
     if($block !~ m/Ext\.define/){ next; }
     
     $block =~ m/Ext\.define\(['"](.*?)['"],/;
     $class = $1;
+    $alias = "";
     print "\t* class: $class\n" if $verbose;
     
     if($block =~ m/extend\s*:\s*['"](.*?)['"]/){
@@ -244,6 +246,8 @@ sub parseFile {
             $type = 'store';
         } elsif ($extend =~ m/app\.Controller/){
             $type = 'controller';
+        } elsif ($extend =~ m/Mixin$/){
+            $type = 'mixin';
         } else {
             if ($unknown){
                 $type = 'generic';
