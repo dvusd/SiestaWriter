@@ -10,6 +10,7 @@ use Getopt::Long;       # command line arg helper
 #use FindJs; # must copy trunk/shell/build/jsb/*.pm into one of these include paths `perl -e "print qq(@INC)"`
 use File::Basename;
 use Digest::MD5;
+use Term::ANSIColor qw(:constants);
 
 # In Perl, you can't turn the buffering off, but you can get the same benefits by making the filehandle "hot".
 # Whenever you print to a hot filehandle (STDOUT in our case), Perl flushes the buffer immediately.
@@ -28,7 +29,6 @@ my $debug = 0;
 my $in;
 my $out;
 my $tplType;
-my $warnings = "";
 my $ttlChanged = 0;
 
 if ($#ARGV > 0){
@@ -98,9 +98,6 @@ if ($mirror){
     mirror($in,$out);
 }
 main($in,$out);
-if ($warnings ne ""){
-    print "\nWARNINGS:\n$warnings\n";
-}
 print "\nTotal Files Modified: $ttlChanged\n";
 print "\nDone:\n";
 
@@ -170,7 +167,7 @@ sub parseFile {
         # capture group 1 value checksum
         $digest = $1;
         if ((!defined $digest) || ($digest eq "")){
-            logWarn("Skipped $input: checksum missing.\n");
+            logWarn("Skipped $input: checksum missing.\n", YELLOW);
             return;
         }
         print "Checksum from comment:\t$digest\n" if $verbose;
@@ -186,7 +183,7 @@ sub parseFile {
         # clear the data we loaded
         $ctx->reset;
         if ($digest ne $newDigest){
-            logWarn("Skipped $input: checksums do not match. File has been modified.\n");
+            logWarn("Skipped $input: checksums do not match. File has been modified.\n", RED);
             return;
         }
     }
@@ -205,56 +202,65 @@ sub parseFile {
     $block =~ m/Ext\.define\(['"](.*?)['"],/;
     # capture group 1 value is the class
     $class = $1;
-    $alias = "";
     print "\t* class: $class\n" if $verbose;
     
     if($block =~ m/extend\s*:\s*['"](.*?)['"]/){
         $extend = $1;
         print "\t* extends: $extend\n" if $verbose;
+    } else {
+        $extend = "";
+        print "\t* extends: NONE!\n" if $verbose;
     }
     
     if($block =~ m/alias\s*:\s*['"](.*?)['"]/){
         $alias = $1;
         $alias =~ s/\widget\.//g;
         print "\t* alias: $alias\n" if $verbose;
-    }    
+    } else {
+        $alias = "";
+        print "\t* alias: NONE!\n" if $verbose;
+    }
     
     # check if the user specified a type to use
     if ($tplType){
         $type = $tplType;
     } else {
         # attempt to auto-detect the type of test template to use
-        if (($extend =~ m/Ext\.data\.Model/) || ($extend =~ m/data\.Model$/)){
+        if (($extend =~ m/data\.Model$/i) || ($extend =~ m/data\.TreeModel$/i)){
             $type = 'model';
-        } elsif (($extend =~ m/grid\.Panel/) || ($extend =~ m/Grid$/) || ($alias =~ m/grid$/)){
+        } elsif (($extend =~ m/grid\.Panel/i) || ($extend =~ m/Grid$/i) || ($alias =~ m/grid$/i)){
             $type = 'grid';
-        } elsif (($extend =~ m/tree\.Panel/) || ($extend =~ m/Tree$/) || ($alias =~ m/tree$/)){
+        } elsif (($extend =~ m/tree\.Panel/i) || ($extend =~ m/Tree$/i) || ($alias =~ m/tree$/i)){
             $type = 'tree';
-        } elsif (($extend =~ m/form\.Panel/) || ($extend =~ m/Form$/) || ($alias =~ m/form$/)){
+        } elsif (($extend =~ m/form\.Panel/i) || ($extend =~ m/Form$/i) || ($alias =~ m/form$/i)){
             $type = 'form';
-        } elsif (($extend =~ m/tab\.Panel/) || ($extend =~ m/Tab$/) || ($alias =~ m/tab$/)){
+        } elsif (($extend =~ m/tab\.Panel/i) || ($extend =~ m/Tab$/i) || ($alias =~ m/tab$/i)){
             $type = 'tab';
-        } elsif (($extend =~ m/menu\.Menu/) || ($extend =~ m/Menu$/) || ($alias =~ m/menu$/)){
+        } elsif (($extend =~ m/menu\.Menu/i) || ($extend =~ m/Menu$/i) || ($alias =~ m/menu$/i)){
             $type = 'menu';
-        } elsif (($extend =~ m/Toolbar$/) || ($alias =~ m/toolbar$/)){
+        } elsif (($extend =~ m/Toolbar$/i) || ($alias =~ m/toolbar$/i)){
             $type = 'toolbar';
-        } elsif (($extend =~ m/Window$/) || ($alias =~ m/window$/)){
+        } elsif (($extend =~ m/Window$/i) || ($alias =~ m/window$/i)){
             $type = 'window';
-        } elsif (($extend =~ m/Panel$/) || ($alias =~ m/panel$/)){
+        } elsif (($extend =~ m/Panel$/i) || ($alias =~ m/panel$/i)){
             $type = 'panel';
-        } elsif (($extend =~ m/Button/) || ($alias =~ m/button$/)){
+        } elsif (($extend =~ m/Button/i) || ($alias =~ m/button$/i)){
             $type = 'button';
-        } elsif (($extend =~ m/Store/) || ($alias =~ m/store$/)){
+        } elsif (($extend =~ m/Store/i) || ($alias =~ m/store$/i)) {
             $type = 'store';
-        } elsif ($extend =~ m/app\.Controller/){
+        } elsif (($extend =~ m/\.Controller$/i) || ($extend =~ m/\.controller\./i)){
             $type = 'controller';
-        } elsif ($extend =~ m/Mixin$/){
+        } elsif ($extend =~ m/Mixin$/i){
             $type = 'mixin';
+        } elsif (($extend =~ m/data\.field\./i)) {
+            $type = 'datafield';
+        } elsif (($extend =~ m/Ext\.field\./i) || ($extend =~ m/form\.field/i)) {
+            $type = 'formfield';
         } else {
             if ($unknown){
                 $type = 'generic';
             } else {
-                logWarn("Skipped $class: unknown type.\n");
+                logWarn("Skipped $class: unknown type.\n", CYAN);
                 return;
             }
         }
@@ -277,6 +283,7 @@ sub parseFile {
     $header = qq~/**
  * This code was auto-generated by $0.
  * If you modify the code in any way, this file will no longer be automatically updated.
+ * Source: $input
  * Template: $type
  * Checksum: $digest
  */
@@ -291,9 +298,8 @@ sub parseFile {
 }
 
 sub logWarn {
-    my ($msg) = @_;
-    print $msg if $verbose;
-    $warnings .= $msg;
+    my ($msg, $color) = @_;
+    print $color, $msg, RESET;
 }
 
 sub mirror {
