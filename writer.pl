@@ -156,8 +156,7 @@ sub parseFile {
     print "#parseFile($input, $output)\n" if $debug;
     
     $ctx = Digest::MD5->new;
-    
-    # if the file already exists, check if it has been modified 
+    # if the file already exists, check if it has been modified
     if (-e $output){
         open(FH, "<$output");
         $block = do { local $/; <FH> };
@@ -171,10 +170,10 @@ sub parseFile {
             return;
         }
         # remove carriage returns
-        $digest =~ s/\r//g; # unclear why chomp($digest) is not working...
+        $digest =~ s#\r##g; # unclear why chomp($digest) is not working...
         # remove the multiline header comment before calculating the md5
         $block =~ s#^/\*.*?\*/[\r]?\n##sg;
-        $block =~ s/\r//sg;
+        $block =~ s#\r##sg;
         # print "\nParsed Code:\n$block\n\n";
         $ctx->add($block);
         my $newDigest = $ctx->hexdigest;
@@ -279,7 +278,7 @@ sub parseFile {
     $str =~ s/\$\{class\}/$class/g;
     $str =~ s/\$\{alias\}/$alias/g;
     $str =~ s/\$\{extend\}/$extend/g;
-    # calculate the md5 hash w/o the header
+    # calculate the md5 hash before we prepend the header comment
     $ctx->add($str);
     $digest = $ctx->hexdigest;
     # add header; a timestamp would be nice but that means all files would change everytime the script is executed.
