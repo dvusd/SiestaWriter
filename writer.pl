@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# 1st arg is the root of the source folder to mimic, will parse recrusively all js file(s) and convert from leading to trailing comma convention
+# 1st arg is the root of the source folder to mimic, will parse recursively all js file(s) and convert from leading to trailing comma convention
 # 2nd arg is the root of the destination folder that will
 use strict;
 use warnings;
@@ -170,15 +170,18 @@ sub parseFile {
             logWarn("Skipped $input: checksum missing.\n", YELLOW);
             return;
         }
-        print "Checksum from comment:\t$digest\n" if $verbose;
+        # remove carriage returns
+        $digest =~ s/\r//g; # unclear why chomp($digest) is not working...
         # remove the multiline header comment before calculating the md5
-        $block =~ s#^/\*.*?\*/\n##sg;
-#        print "\nRemove comment:\n$block\n\n";
+        $block =~ s#^/\*.*?\*/[\r]?\n##sg;
+        $block =~ s/\r//sg;
+        # print "\nParsed Code:\n$block\n\n";
         $ctx->add($block);
         my $newDigest = $ctx->hexdigest;
-        print "Checksum from code:\t$digest\n" if $verbose;
+        print "Checksum from comment:\t$digest\n" if $verbose;
+        print "Checksum from code:\t$newDigest\n" if $verbose;
         if ($digest eq $newDigest){
-            print "Values Match!\n" if $verbose;
+            print "Checksums match!\n" if $verbose;
         }
         # clear the data we loaded
         $ctx->reset;
