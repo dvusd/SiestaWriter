@@ -5,6 +5,7 @@ StartTest(function(t) {
     t.chainDone(
         'render("'+cls+'", {})',
         'clickEachField("'+xtype+'")',
+        'clickSelector(".x-panel-header")',
         'clickCQ("'+xtype+' tool[type=close]")',
         'destroyCQ("'+xtype+'")'
     );
