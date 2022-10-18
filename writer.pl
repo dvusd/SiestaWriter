@@ -4,11 +4,13 @@
 # 2nd arg is the root of the destination folder that will
 use strict;
 use warnings;
+use Cwd qw(cwd);
 #use lib "./build/jsb";
 use Getopt::Long;       # command line arg helper
 # Getopt DOCS --  http://www.vromans.org/johan/articles/getopt.html
 #use FindJs; # must copy trunk/shell/build/jsb/*.pm into one of these include paths `perl -e "print qq(@INC)"`
 use File::Basename;
+use File::Find;
 use Digest::MD5;
 use Term::ANSIColor qw(:constants);
 
@@ -46,9 +48,8 @@ if ($#ARGV > 0){
 }
 
 # figure as much out as we can for now
-my $pwd = `readlink -e "$0"`;     chomp($pwd);
-$pwd =~ s#^(.*)/.*$#$1#g; # dirname($pwd)
-#print "Current dir: $pwd\n";
+my $pwd = cwd; chomp($pwd);
+print "* Current dir: $pwd\n" if $verbose;
 
 # print usage
 #qq~ http://www.tek-tips.com/viewthread.cfm?qid=1434394
@@ -67,12 +68,12 @@ USAGE: $0 [iortumvh]
         Automatically implies that the directory structure will be mirrored.
     -t  Template type to use instead of auto-detection. 
         The following values are supported: 
-            'button', 'controller', 'form', 'generic', 'grid', 'menu', 'mixin', 'model', 'panel', 'store', 'tab', 'toolbar', 'tree', 'window'
+            'button', 'controller', 'form', 'generic', 'grid', 'menu', 'mixin', 'model', 'panel', 'store', 'tab', 'toolbar', 'tree', 'viewcontroller', 'window'
     -u  Write tests for types of classes that are not natively supported.  Default is false.
         If set to true, the default template type will be 'generic' unless otherwise specified 
         with the -t option.
-    -m  Mirror the directory structure of the input folders into the output location. 
-        The input location must be a folder. 
+    -m  Mirror the directory structure of the input folders into the output location.
+        The input location must be a folder. TBD
     -v  Verbose output.  Warnings will always be printed.
     -h  This help message.
 ~;    
@@ -211,7 +212,7 @@ sub parseFile {
         print "\t* extends: $extend\n" if $verbose;
     } else {
         $extend = "";
-        print "\t* extends: NONE!\n" if $verbose;
+        print "\t* extends: NONE\n" if $verbose;
     }
     
     if($block =~ m/alias\s*:\s*['"](.*?)['"]/){
@@ -220,7 +221,7 @@ sub parseFile {
         print "\t* alias: $alias\n" if $verbose;
     } else {
         $alias = "";
-        print "\t* alias: NONE!\n" if $verbose;
+        print "\t* alias: NONE\n" if $verbose;
     }
     
     # check if the user specified a type to use
@@ -250,7 +251,11 @@ sub parseFile {
             $type = 'button';
         } elsif (($extend =~ m/Store/i) || ($alias =~ m/store$/i)) {
             $type = 'store';
-        } elsif (($extend =~ m/\.Controller$/i) || ($extend =~ m/\.controller\./i)){
+        # assume that files with an alias of controller are View Controllers
+        } elsif (($extend =~ m/\.ViewController/i) || ($alias =~ m/controller\./i)){
+            $type = 'viewcontroller';
+        # make sure to test ViewController BEFORE app controller b/c a ViewController may extend a shared controller class
+        } elsif (($extend =~ m/\.Controller$/i)){
             $type = 'controller';
         } elsif ($extend =~ m/Mixin$/i){
             $type = 'mixin';
@@ -290,10 +295,11 @@ sub parseFile {
  * Checksum: $digest
  */
 ~;
-    
+
     print "Write: $output\n" if $verbose;
 #    print "\n$str\n";
-    open(FH,">$output");
+    # must set :raw so windows doesn't write CRLF line feeds
+    open(FH, ">:raw", "$output") or die "Cannot open stream for writing: $!\n";
     print FH "$header$str";
     close(FH);
     $ttlChanged++;
@@ -306,22 +312,33 @@ sub logWarn {
 
 sub mirror {
     my ($input,$output) = @_;
-    
+
     if(!-d "$input"){
         die "Invalid input folder for mirroring: '$input'";
     }
     print "#mirror($input, $output)\n" if $debug;
     
-    my $rsyncExcludes = "excludes";
-    my $rsync = "rsync -zacO '$input/' '$output/' --exclude-from='$pwd/$rsyncExcludes'";
+#    my $rsyncExcludes = "excludes";
+#    my $rsync = "rsync -zacO '$input/' '$output/' --exclude-from='$pwd/$rsyncExcludes'";
     
-    print "\nMirroring tree structure:\n$rsync\n" if $verbose;
-    open(SYNC,"$rsync |");
-    while(<SYNC>) {
-        print $_;
+#    print "\nMirroring tree structure:\n$rsync\n" if $verbose;
+#    open(SYNC,"$rsync |");
+#    while(<SYNC>) {
+#        print $_;
+#    }
+#    close(SYNC);
+
+    #dircopy($input, $output) or die("Unable to mirror '$input' to '$output': $!\n");
+
+    &File::Find::find( \&wanted, $input );
+
+    sub wanted {
+        return unless -d;
+        #print "Directory $File::Find::dir\n" if $debug;
+        #TODO: recreate the found folder in the $output location
     }
-    close(SYNC);
-    print "\n";
+
+    print "Mirrored $! \n";
 }
 
 # END OF FILE
