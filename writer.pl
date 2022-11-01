@@ -11,6 +11,7 @@ use Getopt::Long;       # command line arg helper
 #use FindJs; # must copy trunk/shell/build/jsb/*.pm into one of these include paths `perl -e "print qq(@INC)"`
 use File::Basename;
 use File::Find;
+use File::Path qw(make_path);
 use Digest::MD5;
 use Term::ANSIColor qw(:constants);
 
@@ -328,15 +329,28 @@ sub mirror {
 #    }
 #    close(SYNC);
 
-    #dircopy($input, $output) or die("Unable to mirror '$input' to '$output': $!\n");
+    # iterate all files based on $input
+    &File::Find::find( sub {
+        # skip files
+        if (-f $_) {
+#            print "Skip file: $_\n" if $verbose;
+            return;
+        }
+        print "Scanning $_\n" if $verbose;
 
-    &File::Find::find( \&wanted, $input );
+        # strip off the input folder from the current folder to get the remaining path that must be replicated
+        my $temp = $File::Find::name =~ s/$input//r;
+        # remove any leading directory separator
+        $temp =~ s/^\///;
 
-    sub wanted {
-        return unless -d;
-        #print "Directory $File::Find::dir\n" if $debug;
-        #TODO: recreate the found folder in the $output location
-    }
+        my $target = "$pwd/$output/$temp";
+#        print "target: $target\n" if $verbose;
+        # create the directory if it doesn't exist
+        if (!-d $target) {
+            mkdir( $target ) or die "Couldn't create target directory, $!";
+            print "Mirrored: $target\n" if $verbose;
+        }
+    }, $input);
 
     print "Mirrored $! \n";
 }
