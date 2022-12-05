@@ -163,32 +163,39 @@ sub parseFile {
         open(FH, "<$output");
         $block = do { local $/; <FH> };
         close(FH);
-        # read the original checksum
-        $block =~ m/Checksum:\s(.*?)[\n]/;
-        # capture group 1 value checksum
-        $digest = $1;
-        if ((!defined $digest) || ($digest eq "")){
-            logWarn("Skipped $input: checksum missing.\n", YELLOW);
-            return;
-        }
-        # remove carriage returns
-        $digest =~ s#\r##g; # unclear why chomp($digest) is not working...
-        # remove the multiline header comment before calculating the md5
-        $block =~ s#^/\*.*?\*/[\r]?\n##sg;
-        $block =~ s#\r##sg;
-        # print "\nParsed Code:\n$block\n\n";
-        $ctx->add($block);
-        my $newDigest = $ctx->hexdigest;
-        print "Checksum from comment:\t$digest\n" if $verbose;
-        print "Checksum from code:\t$newDigest\n" if $verbose;
-        if ($digest eq $newDigest){
-            print "Checksums match!\n" if $verbose;
-        }
-        # clear the data we loaded
-        $ctx->reset;
-        if ($digest ne $newDigest){
-            logWarn("Skipped $input: checksums do not match. File has been modified.\n", RED);
-            return;
+        # check for a blank file
+        if ($block eq ""){
+            print "Test file empty\n" if $verbose;
+            # clear the data we loaded
+            $ctx->reset;
+        } else {
+            # read the original checksum
+            $block =~ m/Checksum:\s(.*?)[\n]/;
+            # capture group 1 value checksum
+            $digest = $1;
+            if ((!defined $digest) || ($digest eq "")){
+                logWarn("Skipped $input: checksum missing.\n", YELLOW);
+                return;
+            }
+            # remove carriage returns
+            $digest =~ s#\r##g; # unclear why chomp($digest) is not working...
+            # remove the multiline header comment before calculating the md5
+            $block =~ s#^/\*.*?\*/[\r]?\n##sg;
+            $block =~ s#\r##sg;
+            # print "\nParsed Code:\n$block\n\n";
+            $ctx->add($block);
+            my $newDigest = $ctx->hexdigest;
+            print "Checksum from comment:\t$digest\n" if $verbose;
+            print "Checksum from code:\t$newDigest\n" if $verbose;
+            if ($digest eq $newDigest){
+                print "Checksums match!\n" if $verbose;
+            }
+            # clear the data we loaded
+            $ctx->reset;
+            if ($digest ne $newDigest){
+                logWarn("Skipped $input: checksums do not match. File has been modified.\n", RED);
+                return;
+            }
         }
     }
     
