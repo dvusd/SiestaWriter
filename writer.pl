@@ -229,33 +229,31 @@ sub parseFile {
     if ($tplType){
         $type = $tplType;
     } else {
-        # attempt to auto-detect the type of test template to use
+        # attempt to auto-detect the type of test template to use based on the class it is extending
         if (($extend =~ m/data\.Model$/i) || ($extend =~ m/data\.TreeModel$/i)){
             $type = 'model';
-        } elsif (($extend =~ m/grid\.Panel/i) || ($extend =~ m/Grid$/i) || ($alias =~ m/grid$/i)){
+        } elsif (($extend =~ m/grid\.Panel/i) || ($extend =~ m/Grid$/i)){
             $type = 'grid';
-        } elsif (($extend =~ m/tree\.Panel/i) || ($extend =~ m/Tree$/i) || ($alias =~ m/tree$/i)){
+        } elsif (($extend =~ m/tree\.Panel/i) || ($extend =~ m/Tree$/i)){
             $type = 'tree';
-        } elsif (($extend =~ m/form\.Panel/i) || ($extend =~ m/Form$/i) || ($alias =~ m/form$/i)){
+        } elsif (($extend =~ m/form\.Panel/i) || ($extend =~ m/Form$/i)){
             $type = 'form';
-        } elsif (($extend =~ m/tab\.Panel/i) || ($extend =~ m/Tab$/i) || ($alias =~ m/tab$/i)){
+        } elsif (($extend =~ m/tab\.Panel/i) || ($extend =~ m/Tab$/i)){
             $type = 'tab';
-        } elsif (($extend =~ m/menu\.Menu/i) || ($extend =~ m/Menu$/i) || ($alias =~ m/menu$/i)){
+        } elsif (($extend =~ m/menu\.Menu/i) || ($extend =~ m/Menu$/i)){
             $type = 'menu';
-        } elsif (($extend =~ m/Toolbar$/i) || ($alias =~ m/toolbar$/i)){
+        } elsif (($extend =~ m/Toolbar$/i)){
             $type = 'toolbar';
-        } elsif (($extend =~ m/Window$/i) || ($alias =~ m/window$/i)){
+        } elsif (($extend =~ m/Window$/i)){
             $type = 'window';
-        } elsif (($extend =~ m/Panel$/i) || ($alias =~ m/panel$/i)){
+        } elsif (($extend =~ m/Panel$/i)){
             $type = 'panel';
-        } elsif (($extend =~ m/Button/i) || ($alias =~ m/button$/i)){
+        } elsif (($extend =~ m/Button/i)){
             $type = 'button';
-        } elsif (($extend =~ m/Store/i) || ($alias =~ m/store$/i)) {
+        } elsif (($extend =~ m/Store/i)) {
             $type = 'store';
-        # assume that files with an alias of controller are View Controllers
-        } elsif (($extend =~ m/\.ViewController/i) || ($alias =~ m/controller\./i)){
+        } elsif (($extend =~ m/\.ViewController/i)){
             $type = 'viewcontroller';
-        # make sure to test ViewController BEFORE app controller b/c a ViewController may extend a shared controller class
         } elsif (($extend =~ m/\.Controller$/i)){
             $type = 'controller';
         } elsif ($extend =~ m/Mixin$/i){
@@ -265,11 +263,45 @@ sub parseFile {
         } elsif (($extend =~ m/Ext\.field\./i) || ($extend =~ m/form\.field/i)) {
             $type = 'formfield';
         } else {
-            if ($unknown){
-                $type = 'generic';
+            # if we can't figure out the type by the extended class, then check the alias
+            # NOTE: this separation of extend vs alias is important to prioritize dirty matches like
+            # ```
+            # Ext.define('Portal.store.admin.menuitem.Menu', {
+            #     extend: 'Ext.ux.portal.data.Store',
+            #     alias: 'store.portal_adminmenuitemmenu',
+            # ```
+            # The result type should be a store, but alias could false-positive match as menu.
+
+            if ($alias =~ m/grid$/i){
+                $type = 'grid';
+            } elsif ($alias =~ m/tree$/i){
+                $type = 'tree';
+            } elsif ($alias =~ m/form$/i){
+                $type = 'form';
+            } elsif ($alias =~ m/tab$/i){
+                $type = 'tab';
+            } elsif ($alias =~ m/menu$/i){
+                $type = 'menu';
+            } elsif ($alias =~ m/toolbar$/i){
+                $type = 'toolbar';
+            } elsif ($alias =~ m/window$/i){
+                $type = 'window';
+            } elsif ($alias =~ m/panel$/i){
+                $type = 'panel';
+            } elsif ($alias =~ m/button$/i){
+                $type = 'button';
+            } elsif ($alias =~ m/store$/i) {
+                $type = 'store';
+            # assume that files with an alias of controller are View Controllers
+            } elsif ($alias =~ m/controller\./i){
+                $type = 'viewcontroller';
             } else {
-                logWarn("Skipped $class: unknown type.\n", CYAN);
-                return;
+                if ($unknown){
+                    $type = 'generic';
+                } else {
+                    logWarn("Skipped $class: unknown type.\n", CYAN);
+                    return;
+                }
             }
         }
     }
