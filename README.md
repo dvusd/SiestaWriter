@@ -16,7 +16,7 @@ You will need the following things properly installed on your computer.
 * Install perl: https://strawberryperl.com/
 
 ## Usage
-In the shell, run the following to see all options:
+In the perl shell, run the following to see all options:
 
 ```bash
 perl ./writer.pl
